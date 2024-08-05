@@ -1,0 +1,100 @@
+.agent-chat-container {
+    display: flex;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+  }
+  
+  .sidebar {
+    width: 25%;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 15px;
+    border-right: 1px solid #34495e;
+    overflow-y: auto;
+  }
+  
+  .room {
+    padding: 12px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .room:hover {
+    background-color: #34495e;
+  }
+  
+  .chat-area {
+    flex: 1;
+    padding: 20px;
+    background-color: #ecf0f1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .message {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  
+  .message.customer {
+    justify-content: flex-start;
+  }
+  
+  .message.agent {
+    justify-content: flex-end;
+  }
+  
+  .message-content {
+    max-width: 70%;
+    padding: 12px;
+    border-radius: 15px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  
+  .message.customer .message-content {
+    background-color: #3498db; /* Customer message color */
+    color: white;
+  }
+  
+  .message.agent .message-content {
+    background-color: #2ecc71; /* Agent message color */
+    color: white;
+  }
+  
+  .input-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    border-top: 1px solid #bdc3c7;
+    padding-top: 10px;
+    background-color: #fff;
+  }
+  
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+  }
+  
+  button:hover {
+    background-color: #2980b9;
+  }
+  
