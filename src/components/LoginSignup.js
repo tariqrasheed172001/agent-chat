@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/features/userSlice";
+import storeToken from "../utils/storeToken";
 
 function LoginSignup() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,10 +21,12 @@ function LoginSignup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const toggleForm = () => setIsSignUp(!isSignUp)
+  const toggleForm = () => setIsSignUp(!isSignUp);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword(!showConfirmPassword);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handlePaste = (event) => {
     event.preventDefault();
@@ -27,35 +34,50 @@ function LoginSignup() {
 
   const signUp = async () => {
     try {
-      if(password === confirmPassword){
-      const res = await axios.post(`${process.env.REACT_APP_AUTH_MICROSERVICE_URL}/auth/signup`, {
-        name,
-        email,
-        phone,
-        password,
-      });
-      navigate("/auth/verify-otp", { state: { email } });
-      console.log(res); // log the response data
-    }else{
-      alert("Password and confirm password must be same!")
-    }
+      if (password === confirmPassword) {
+        const res = await axios.post(
+          `${process.env.REACT_APP_AUTH_MICROSERVICE_URL}/auth/signup`,
+          {
+            name,
+            email,
+            phone,
+            password,
+          }
+        );
+        navigate("/auth/verify-otp", { state: { email } });
+        console.log(res); // log the response data
+      } else {
+        alert("Password and confirm password must be same!");
+      }
     } catch (error) {
-      console.error("There was an error signing up!", error.response ? error.response.data : error.message);
+      console.error(
+        "There was an error signing up!",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
   const signIn = async () => {
     try {
-      const res = await axios.post(`${process.env.REACT_APP_AUTH_MICROSERVICE_URL}/auth/signin`, {
-        email,
-        password,
-      });
-      console.log(res); // log the response data
-      navigate('/dashboard');
+      const res = await axios.post(
+        `${process.env.REACT_APP_AUTH_MICROSERVICE_URL}/auth/signin`,
+        {
+          email,
+          password,
+        }
+      );
+      console.log(res.data.token); // log the response data
+      storeToken(res.data.token);
+      // dispatch(setUser({ userData: res.data.userData, token: res.data.token }));
+      localStorage.setItem("dexkorUserData", JSON.stringify(res.data.userData));
+      navigate("/dashboard");
     } catch (error) {
-      console.error("There was an error signing in!", error.response ? error.response.data : error.message);
+      console.error(
+        "There was an error signing in!",
+        error.response ? error.response.data : error.message
+      );
     }
-  }
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault(); // Prevent the default form submission
@@ -64,6 +86,17 @@ function LoginSignup() {
     } else {
       signIn();
     }
+  };
+
+  const handleGoogleLoginSuccess = (response) => {
+    const { credential } = response;
+    const user = jwtDecode(credential); // Decode the JWT token
+    console.log("User Info: ", response); // Log user info
+    // You can now send the user info to your backend or use it as needed
+  };
+
+  const handleGoogleLoginError = (response) => {
+    console.error("Google login failed", response);
   };
 
   return (
@@ -79,7 +112,10 @@ function LoginSignup() {
         <form onSubmit={(e) => handleSubmit(e)} className="space-y-6">
           {isSignUp && (
             <div>
-              <label htmlFor="name" className="flex block text-sm font-medium leading-6 text-gray-900">
+              <label
+                htmlFor="name"
+                className="flex block text-sm font-medium leading-6 text-gray-900"
+              >
                 Full Name
               </label>
               <div className="mt-2">
@@ -98,7 +134,10 @@ function LoginSignup() {
           )}
 
           <div>
-            <label htmlFor="email" className="flex block text-sm font-medium leading-6 text-gray-900">
+            <label
+              htmlFor="email"
+              className="flex block text-sm font-medium leading-6 text-gray-900"
+            >
               Email address
             </label>
             <div className="mt-2">
@@ -118,7 +157,10 @@ function LoginSignup() {
 
           {isSignUp && (
             <div>
-              <label htmlFor="phone" className="flex block text-sm font-medium leading-6 text-gray-900">
+              <label
+                htmlFor="phone"
+                className="flex block text-sm font-medium leading-6 text-gray-900"
+              >
                 Phone Number
               </label>
               <div className="mt-2">
@@ -139,7 +181,10 @@ function LoginSignup() {
           )}
 
           <div>
-            <label htmlFor="password" className="flex text-sm font-medium leading-6 text-gray-900">
+            <label
+              htmlFor="password"
+              className="flex text-sm font-medium leading-6 text-gray-900"
+            >
               Password
             </label>
             <div className="relative mt-2">
@@ -161,9 +206,15 @@ function LoginSignup() {
                 className="absolute inset-y-2 mr-2 right-0 hover:bg-white flex items-center pr-3 bg-white"
               >
                 {showPassword ? (
-                  <EyeSlashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                  <EyeSlashIcon
+                    className="h-5 w-5 text-gray-500"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <EyeIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                  <EyeIcon
+                    className="h-5 w-5 text-gray-500"
+                    aria-hidden="true"
+                  />
                 )}
               </button>
             </div>
@@ -171,7 +222,10 @@ function LoginSignup() {
 
           {isSignUp && (
             <div>
-              <label htmlFor="confirm-password" className="flex block text-sm font-medium leading-6 text-gray-900">
+              <label
+                htmlFor="confirm-password"
+                className="flex block text-sm font-medium leading-6 text-gray-900"
+              >
                 Confirm Password
               </label>
               <div className="relative mt-2">
@@ -193,9 +247,15 @@ function LoginSignup() {
                   className="absolute inset-y-2 mr-2 right-0 hover:bg-white flex items-center pr-3 bg-white"
                 >
                   {showConfirmPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                    <EyeSlashIcon
+                      className="h-5 w-5 text-gray-500"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                    <EyeIcon
+                      className="h-5 w-5 text-gray-500"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </div>
@@ -212,18 +272,32 @@ function LoginSignup() {
           </div>
         </form>
 
+        <GoogleLogin
+          useOneTap
+          onSuccess={handleGoogleLoginSuccess}
+          onError={handleGoogleLoginError}
+          scope="email profile"
+        />
         <p className="mt-10 text-center text-sm text-gray-500">
           {isSignUp ? (
             <>
-              Already have an account?{' '}
-              <a href="#" onClick={toggleForm} className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+              Already have an account?
+              <a
+                href="#"
+                onClick={toggleForm}
+                className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+              >
                 Sign in
               </a>
             </>
           ) : (
             <>
-              Don't have an account?{' '}
-              <a href="#" onClick={toggleForm} className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+              Don't have an account?
+              <a
+                href="#"
+                onClick={toggleForm}
+                className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+              >
                 Sign up
               </a>
             </>
@@ -234,4 +308,4 @@ function LoginSignup() {
   );
 }
 
-export default LoginSignup
+export default LoginSignup;
